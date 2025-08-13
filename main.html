@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script
+      src="https://code.jquery.com/jquery-3.7.1.slim.min.js"
+      integrity="sha256-kmHvs0B+OpCW5GVHUNjv9rOmY0IvSIRcf7zGUDTDQM8="
+      crossorigin="anonymous"
+    ></script>
+    <title>DSA</title>
+  </head>
+  <body>
+    <div class="main">
+      <div class="tiles"></div>
+      <button class="button" type="button" onclick="handleSort('bubble')">Bubble Sort</button>
+      <button class="button" type="button" onclick="handleSort('selection')">Selection Sort</button>
+    </div>
+  </body>
+</html>
+
+<style>
+  .main {
+    font-family: Arial, Helvetica, sans-serif;
+  }
+
+  .tiles {
+    display: flex;
+    align-items: end;
+    justify-content: center;
+    gap: 2px;
+  }
+
+  .tile {
+    width: 50px;
+    font-size: large;
+    font-weight: bold;
+    border: 2px solid black;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease; /* smooth color changes */
+  }
+
+  .red-background {
+    background-color: red;
+  }
+
+  .green-background {
+    background-color: green;
+  }
+</style>
+
+<script>
+  init();
+
+  function init() {
+    const numbers = [5, 3, 6, 8, 9, 2, 1, 4, 7];
+
+    let tilesDiv = $(".tiles");
+
+    for (let number of numbers) {
+      let element = createElement(number);
+      tilesDiv.append(element);
+    }
+  }
+
+  async function handleSort(sortType) {
+    disableButton($(".button"));
+
+    switch (sortType) {
+      case "bubble":
+        await bubbleSort();
+        break;
+
+      case "selection":
+        await selectionSort();
+        break;
+
+      default:
+        break;
+    }
+    enableButton($(".button"));
+  }
+
+  async function selectionSort() {
+    let tiles = $(".tiles").children();
+
+    for (let i = 0; i < tiles.length; i++) {
+      let minValue = Infinity;
+      let minValueIndex = Infinity;
+
+      for (let j = i; j < tiles.length; j++) {
+        let currentTile = tiles[j];
+        let currentIndex = j;
+        let currentTileValue = $(currentTile).text();
+        let minValueTile = tiles[minValueIndex];
+
+        if (currentTileValue < minValue) {
+          unhighlightTileRed(minValueTile);
+
+          minValue = currentTileValue;
+          minValueIndex = currentIndex;
+
+          highlightTileRed(currentTile);
+        } else {
+          highlightTileGreen(currentTile);
+        }
+
+        await delay(500);
+
+        unhighlightTileGreen(currentTile);
+      }
+
+      swap(tiles, i, minValueIndex);
+
+      await delay(500);
+
+      unhighlightTileRed(tiles[i]);
+    }
+  }
+
+  async function bubbleSort() {
+    let tiles = $(".tiles").children();
+
+    let isSorted;
+
+    for (let i = 0; i < tiles.length; i++) {
+      isSorted = true;
+      for (let j = 1; j < tiles.length - i; j++) {
+        let leftPointer = j - 1;
+        let rightPointer = j;
+        let leftTile = tiles[leftPointer];
+        let rightTile = tiles[rightPointer];
+        let leftTileValue = $(leftTile).text();
+        let rightTileValue = $(rightTile).text();
+
+        highlightTileRed(leftTile);
+        highlightTileRed(rightTile);
+
+        await delay(500);
+
+        if (rightTileValue < leftTileValue) {
+          swap(tiles, leftPointer, rightPointer);
+          isSorted = false;
+        }
+
+        await delay(500);
+
+        unhighlightTileRed(leftTile);
+        unhighlightTileRed(rightTile);
+      }
+
+      if (isSorted) return;
+    }
+  }
+
+  function createElement(number) {
+    let element = document.createElement("div");
+    $(element)
+      .text(number)
+      .addClass("tile")
+      .css("height", `${number * 50}px`);
+
+    return element;
+  }
+
+  function highlightTileRed(element) {
+    $(element).addClass("red-background");
+  }
+
+  function highlightTileGreen(element) {
+    $(element).addClass("green-background");
+  }
+
+  function unhighlightTileRed(element) {
+    $(element).removeClass("red-background");
+  }
+
+  function unhighlightTileGreen(element) {
+    $(element).removeClass("green-background");
+  }
+
+  function enableButton(element) {
+    $(element).prop("disabled", false);
+  }
+
+  function disableButton(element) {
+    $(element).prop("disabled", true);
+  }
+
+  function delay(ms) {
+    return new Promise((resolve) => {
+      setTimeout(resolve, ms);
+    });
+  }
+
+  function swap(array, leftPointer, rightPointer) {
+    let parent = $(".tiles");
+    let temp = $(array[leftPointer]);
+
+    array[leftPointer] = $(array[rightPointer]);
+    array[rightPointer] = temp;
+
+    parent.append(array.toArray());
+  }
+</script>
