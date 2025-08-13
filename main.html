@@ -4,206 +4,266 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script
-      src="https://code.jquery.com/jquery-3.7.1.slim.min.js"
-      integrity="sha256-kmHvs0B+OpCW5GVHUNjv9rOmY0IvSIRcf7zGUDTDQM8="
-      crossorigin="anonymous"
-    ></script>
     <title>DSA</title>
+
+    <style>
+      .main {
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      .tiles {
+        display: flex;
+        align-items: end;
+        justify-content: center;
+        gap: 5px;
+      }
+
+      .tile {
+        width: 50px;
+        font-size: large;
+        font-weight: bold;
+        border: 2px solid black;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        transition: background-color 0.2s ease; /* smooth color changes */
+      }
+
+      .buttons-container {
+        margin-top: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+
+      .button {
+        outline: none;
+        border: none;
+        padding: 10px 20px;
+        margin: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        border: none;
+        border-radius: 5px;
+        transition: background-color 0.2s ease;
+      }
+
+      .primary-button {
+        background-color: #007bff;
+        color: white;
+      }
+
+      .primary-button:hover {
+        background-color: #0061c8;
+      }
+
+      .secondary-button {
+        background-color: #6c757d;
+        color: white;
+      }
+
+      .secondary-button:hover {
+        background-color: #5a6268;
+      }
+
+      .button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+      }
+
+      .red-background {
+        background-color: tomato;
+      }
+
+      .green-background {
+        background-color: greenyellow;
+      }
+    </style>
   </head>
+
   <body>
     <div class="main">
       <div class="tiles"></div>
-      <button class="button" type="button" onclick="handleSort('bubble')">Bubble Sort</button>
-      <button class="button" type="button" onclick="handleSort('selection')">Selection Sort</button>
+      <div class="buttons-container">
+        <button class="button primary-button" type="button" onclick="handleSort('bubble')">Bubble Sort</button>
+        <button class="button primary-button" type="button" onclick="handleSort('selection')">Selection Sort</button>
+        <button class="button secondary-button" type="button" onclick="handleReset()">Reset</button>
+      </div>
     </div>
+
+    <script>
+      const DELAY_DURATION = 500;
+      const NUMBERS = [5, 3, 6, 8, 9, 2, 1, 4, 7];
+
+      document.addEventListener("DOMContentLoaded", init);
+
+      function init() {
+        for (let number of NUMBERS) {
+          let element = createElement(number);
+          document.querySelector(".tiles").appendChild(element);
+        }
+      }
+
+      function createElement(number) {
+        let element = document.createElement("div");
+        element.textContent = number;
+        element.classList.add("tile");
+        element.style.height = `${number * 50}px`;
+
+        return element;
+      }
+
+      function highlightTileRed(element) {
+        element.classList.add("red-background");
+      }
+
+      function highlightTileGreen(element) {
+        element.classList.add("green-background");
+      }
+
+      function unhighlightTileRed(element) {
+        element.classList.remove("red-background");
+      }
+
+      function unhighlightTileGreen(element) {
+        element.classList.remove("green-background");
+      }
+
+      function enableButtons() {
+        document.querySelectorAll(".button").forEach((button) => {
+          button.disabled = false;
+        });
+      }
+
+      function disableButtons() {
+        document.querySelectorAll(".button").forEach((button) => {
+          button.disabled = true;
+        });
+      }
+
+      function delay(ms) {
+        return new Promise((resolve) => {
+          setTimeout(resolve, ms);
+        });
+      }
+
+      function swap(array, leftPointerIndex, rightPointerIndex) {
+        if (leftPointerIndex === rightPointerIndex) return;
+
+        let parent = document.querySelector(".tiles");
+
+        let leftElement = array[leftPointerIndex];
+        let rightElement = array[rightPointerIndex];
+
+        let leftClone = leftElement.cloneNode(true);
+        let rightClone = rightElement.cloneNode(true);
+
+        parent.replaceChild(leftClone, rightElement);
+        parent.replaceChild(rightClone, leftElement);
+      }
+
+      function handleReset() {
+        document.querySelector(".tiles").innerHTML = "";
+        init();
+      }
+
+      async function handleSort(sortType) {
+        disableButtons();
+
+        switch (sortType) {
+          case "bubble":
+            await bubbleSort();
+            break;
+
+          case "selection":
+            await selectionSort();
+            break;
+
+          default:
+            break;
+        }
+
+        enableButtons();
+      }
+
+      async function selectionSort() {
+        let tiles = document.querySelector(".tiles").children;
+
+        for (let i = 0; i < tiles.length; i++) {
+          let minValue = Infinity; // 6
+          let minValueIndex = i; // 5
+
+          for (let j = i; j < tiles.length; j++) {
+            let currentTile = tiles[j];
+            let currentIndex = j;
+            let currentTileValue = Number(currentTile.textContent);
+            let minValueTile = tiles[minValueIndex];
+
+            if (currentTileValue < minValue) {
+              unhighlightTileRed(minValueTile);
+
+              minValue = currentTileValue;
+              minValueIndex = currentIndex;
+
+              highlightTileRed(currentTile);
+            } else {
+              highlightTileGreen(currentTile);
+            }
+
+            await delay(DELAY_DURATION);
+
+            unhighlightTileGreen(currentTile);
+          }
+
+          swap(tiles, i, minValueIndex);
+
+          await delay(DELAY_DURATION);
+
+          unhighlightTileRed(tiles[i]);
+        }
+      }
+
+      async function bubbleSort() {
+        let tiles = document.querySelector(".tiles").children;
+
+        let isSorted;
+
+        for (let i = 0; i < tiles.length; i++) {
+          isSorted = true;
+          for (let j = 1; j < tiles.length - i; j++) {
+            let leftPointerIndex = j - 1;
+            let rightPointerIndex = j;
+            let leftTile = tiles[leftPointerIndex];
+            let rightTile = tiles[rightPointerIndex];
+            let leftTileValue = Number(leftTile.textContent);
+            let rightTileValue = Number(rightTile.textContent);
+
+            highlightTileRed(leftTile);
+            highlightTileRed(rightTile);
+
+            await delay(DELAY_DURATION);
+
+            if (rightTileValue < leftTileValue) {
+              swap(tiles, leftPointerIndex, rightPointerIndex);
+              isSorted = false;
+            }
+
+            await delay(DELAY_DURATION);
+
+            // After swap, leftTile and rightTile are updated
+            leftTile = tiles[leftPointerIndex];
+            rightTile = tiles[rightPointerIndex];
+
+            unhighlightTileRed(leftTile);
+            unhighlightTileRed(rightTile);
+          }
+
+          if (isSorted) break;
+        }
+      }
+    </script>
   </body>
 </html>
-
-<style>
-  .main {
-    font-family: Arial, Helvetica, sans-serif;
-  }
-
-  .tiles {
-    display: flex;
-    align-items: end;
-    justify-content: center;
-    gap: 2px;
-  }
-
-  .tile {
-    width: 50px;
-    font-size: large;
-    font-weight: bold;
-    border: 2px solid black;
-    text-align: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s ease; /* smooth color changes */
-  }
-
-  .red-background {
-    background-color: red;
-  }
-
-  .green-background {
-    background-color: green;
-  }
-</style>
-
-<script>
-  init();
-
-  function init() {
-    const numbers = [5, 3, 6, 8, 9, 2, 1, 4, 7];
-
-    let tilesDiv = $(".tiles");
-
-    for (let number of numbers) {
-      let element = createElement(number);
-      tilesDiv.append(element);
-    }
-  }
-
-  async function handleSort(sortType) {
-    disableButton($(".button"));
-
-    switch (sortType) {
-      case "bubble":
-        await bubbleSort();
-        break;
-
-      case "selection":
-        await selectionSort();
-        break;
-
-      default:
-        break;
-    }
-    enableButton($(".button"));
-  }
-
-  async function selectionSort() {
-    let tiles = $(".tiles").children();
-
-    for (let i = 0; i < tiles.length; i++) {
-      let minValue = Infinity;
-      let minValueIndex = Infinity;
-
-      for (let j = i; j < tiles.length; j++) {
-        let currentTile = tiles[j];
-        let currentIndex = j;
-        let currentTileValue = $(currentTile).text();
-        let minValueTile = tiles[minValueIndex];
-
-        if (currentTileValue < minValue) {
-          unhighlightTileRed(minValueTile);
-
-          minValue = currentTileValue;
-          minValueIndex = currentIndex;
-
-          highlightTileRed(currentTile);
-        } else {
-          highlightTileGreen(currentTile);
-        }
-
-        await delay(500);
-
-        unhighlightTileGreen(currentTile);
-      }
-
-      swap(tiles, i, minValueIndex);
-
-      await delay(500);
-
-      unhighlightTileRed(tiles[i]);
-    }
-  }
-
-  async function bubbleSort() {
-    let tiles = $(".tiles").children();
-
-    let isSorted;
-
-    for (let i = 0; i < tiles.length; i++) {
-      isSorted = true;
-      for (let j = 1; j < tiles.length - i; j++) {
-        let leftPointer = j - 1;
-        let rightPointer = j;
-        let leftTile = tiles[leftPointer];
-        let rightTile = tiles[rightPointer];
-        let leftTileValue = $(leftTile).text();
-        let rightTileValue = $(rightTile).text();
-
-        highlightTileRed(leftTile);
-        highlightTileRed(rightTile);
-
-        await delay(500);
-
-        if (rightTileValue < leftTileValue) {
-          swap(tiles, leftPointer, rightPointer);
-          isSorted = false;
-        }
-
-        await delay(500);
-
-        unhighlightTileRed(leftTile);
-        unhighlightTileRed(rightTile);
-      }
-
-      if (isSorted) return;
-    }
-  }
-
-  function createElement(number) {
-    let element = document.createElement("div");
-    $(element)
-      .text(number)
-      .addClass("tile")
-      .css("height", `${number * 50}px`);
-
-    return element;
-  }
-
-  function highlightTileRed(element) {
-    $(element).addClass("red-background");
-  }
-
-  function highlightTileGreen(element) {
-    $(element).addClass("green-background");
-  }
-
-  function unhighlightTileRed(element) {
-    $(element).removeClass("red-background");
-  }
-
-  function unhighlightTileGreen(element) {
-    $(element).removeClass("green-background");
-  }
-
-  function enableButton(element) {
-    $(element).prop("disabled", false);
-  }
-
-  function disableButton(element) {
-    $(element).prop("disabled", true);
-  }
-
-  function delay(ms) {
-    return new Promise((resolve) => {
-      setTimeout(resolve, ms);
-    });
-  }
-
-  function swap(array, leftPointer, rightPointer) {
-    let parent = $(".tiles");
-    let temp = $(array[leftPointer]);
-
-    array[leftPointer] = $(array[rightPointer]);
-    array[rightPointer] = temp;
-
-    parent.append(array.toArray());
-  }
-</script>
